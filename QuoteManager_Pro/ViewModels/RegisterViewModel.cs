@@ -34,9 +34,6 @@ namespace QuoteManager_Pro.ViewModels
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
 
-        // Optional: Accept terms and conditions
-        [Display(Name = "I agree to the terms and conditions")]
-        [Range(typeof(bool), "true", "true", ErrorMessage = "You must agree to the terms and conditions")]
-        public bool AcceptTerms { get; set; }
+        
     }
 }
