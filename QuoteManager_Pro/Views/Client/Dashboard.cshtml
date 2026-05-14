@@ -1,0 +1,160 @@
+﻿@model List<Quote>
+@{
+    ViewData["Title"] = "My Dashboard";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-tachometer-alt"></i> My Dashboard</h1>
+        <a href="/Product/List" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Quote Request
+        </a>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h5>Total Quotes</h5>
+                    <h2>@Model.Count</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h5>Pending</h5>
+                    <h2>@Model.Count(q => q.Status == "Pending")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h5>Approved</h5>
+                    <h2>@Model.Count(q => q.Status == "Approved")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h5>Rejected</h5>
+                    <h2>@Model.Count(q => q.Status == "Rejected")</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4>My Quote Requests</h4>
+        </div>
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle"></i> You haven't requested any quotes yet.
+                    <a href="/Product/List">Start requesting now!</a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Proposed Price</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Request Date</th>
+                                <th>Manager Comments</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var quote in Model.OrderByDescending(q => q.RequestDate))
+                            {
+                                <tr>
+                                    <td>@quote.Product.Name</td>
+                                    <td>@quote.Quantity</td>
+                                    <td>@quote.ProposedPrice.ToString("C")</td>
+                                    <td>@((quote.Quantity * quote.ProposedPrice).ToString("C"))</td>
+                                    <td>
+                                        @if (quote.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning">Pending</span>
+                                        }
+                                        else if (quote.Status == "Approved")
+                                        {
+                                            <span class="badge bg-success">Approved</span>
+                                        }
+                                        else if (quote.Status == "Rejected")
+                                        {
+                                            <span class="badge bg-danger">Rejected</span>
+                                        }
+                                        else if (quote.Status == "Paid")
+                                        {
+                                            <span class="badge bg-info">Paid</span>
+                                        }
+                                    </td>
+                                    <td>@quote.RequestDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@quote.ManagerComments</td>
+                                    <td>
+                                        @if (quote.Status == "Approved")
+                                        {
+                                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal@(quote.Id)">
+                                                <i class="fas fa-credit-card"></i> Pay
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+
+                                <!-- Payment Modal -->
+                                if (quote.Status == "Approved")
+                                {
+                                    <div class="modal fade" id="paymentModal@(quote.Id)" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-success text-white">
+                                                    <h5 class="modal-title">Confirm Payment</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <form asp-action="SubmitPayment" asp-controller="Client" method="post" enctype="multipart/form-data">
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="quoteId" value="@quote.Id" />
+                                                        <p>Product: <strong>@quote.Product.Name</strong></p>
+                                                        <p>Quantity: <strong>@quote.Quantity</strong></p>
+                                                        <p>Total Amount: <strong>@((quote.Quantity * quote.ProposedPrice).ToString("C"))</strong></p>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Upload Payment Proof (Screenshot/Receipt)</label>
+                                                            <input type="file" name="paymentProof" class="form-control" accept="image/*,.pdf" required />
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-success">Submit Payment</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
