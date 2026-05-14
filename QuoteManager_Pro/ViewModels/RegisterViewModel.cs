@@ -32,7 +32,7 @@ namespace QuoteManager_Pro.ViewModels
         [DataType(DataType.Password)]
         [Display(Name ="Confirm Password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfrimPassword { get; set; }
+        public string ConfirmPassword { get; set; }
 
         // Optional: Accept terms and conditions
         [Display(Name = "I agree to the terms and conditions")]
