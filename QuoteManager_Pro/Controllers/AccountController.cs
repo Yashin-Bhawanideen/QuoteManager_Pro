@@ -100,43 +100,39 @@ namespace QuoteManager_Pro.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Check if user already exists
-                var existingUser = await _userManager.FindByEmailAsync(model.Email);
-                if (existingUser != null)
-                {
-                    ModelState.AddModelError("Email", "This email is already registered.");
-                    return View(model);
-                }
-
                 // Create new user
                 var user = new ApplicationUser
                 {
-                    UserName = model.Email, // Use email as username
+                    UserName = model.Email,  // Use email as username
                     Email = model.Email,
                     FirstName = model.FirstName,
                     LastName = model.LastName,
-                    RegistrationDate = DateTime.UtcNow
+                    RegistrationDate = DateTime.UtcNow,
+                    EmailConfirmed = true  // Critical: Skip email confirmation
                 };
 
+                // Create the user
                 var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
-                    // Assign "Client" role to new users by default
+                    // Ensure Client role exists
                     if (!await _roleManager.RoleExistsAsync("Client"))
                     {
                         await _roleManager.CreateAsync(new IdentityRole("Client"));
                     }
 
+                    // Add user to Client role
                     await _userManager.AddToRoleAsync(user, "Client");
 
-                    // Sign in the user
+                    // Sign in immediately
                     await _signInManager.SignInAsync(user, isPersistent: false);
 
-                    TempData["Message"] = "Registration successful! Welcome to QuoteManager Pro.";
+                    TempData["Message"] = "Registration successful!";
                     return RedirectToAction("Index", "Home");
                 }
 
+                // Add all errors to ModelState
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
