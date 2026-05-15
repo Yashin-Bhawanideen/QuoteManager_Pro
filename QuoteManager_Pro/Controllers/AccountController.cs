@@ -51,6 +51,8 @@ namespace QuoteManager_Pro.Controllers
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return View(model);
                 }
+                // Log user found
+                Console.WriteLine($"User found: {user.Email}, EmailConfirmed: {user.EmailConfirmed}");
 
                 // Sign in the user
                 var result = await _signInManager.PasswordSignInAsync(
@@ -59,9 +61,13 @@ namespace QuoteManager_Pro.Controllers
                     model.RememberMe,
                     lockoutOnFailure: false);
 
+                // Log the result
+                Console.WriteLine($"Login result: Succeeded={result.Succeeded}, IsLockedOut={result.IsLockedOut}, RequiresTwoFactor={result.RequiresTwoFactor}");
+
                 if (result.Succeeded)
                 {
                     // Redirect to return URL if exists, otherwise to home
+                    Console.WriteLine("Login successful, redirecting...");
                     if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
                     {
                         return Redirect(model.ReturnUrl);
